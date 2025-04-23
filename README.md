@@ -6,8 +6,11 @@ This project implements a Python-based chatbot that allows users to upload PDF d
 
 Before you begin, ensure you have the following installed:
 
-1.  **uv**: A fast Python package installer and resolver.
-2.  **Ollama**: A tool to run large language models locally.
+1. **uv**: A fast Python package installer and resolver.
+2. **Ollama**: A tool to run large language models locally.
+
+![Screenshot of the Chat with PDFs interface showing the document upload area and conversation panel where users can ask questions about their PDFs.](./images/image.png)
+*Example of the working application where users can upload PDFs and chat with an AI about the document content.*
 
 ## Installation
 
@@ -23,10 +26,10 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 
 ### 2. Install Project Dependencies
 
-Clone this repository and navigate into the project directory. Then, use `uv` to install the required Python packages (assuming you have a `requirements.txt` file):
+Clone this repository and navigate into the project directory. Then, use `uv` to install the required Python packages:
 
 ```bash
-cd chat-with-pdfs # Or your project directory name
+cd chat-with-pdfs
 uv sync 
 ```
 
