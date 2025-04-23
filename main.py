@@ -230,7 +230,7 @@ def build_gradio_ui():
             source_docs = result.get("source_documents", [])
 
             if source_docs:
-                sources_text = "\n\n**Sources:**\n"
+                sources_text = "\n<hr style='margin-top: 0.25em;margin-bottom: 0.25em;'>\n\n**Sources:** \n ``` \n"
                 added_sources = set()
                 for doc in source_docs:
                     source_name = doc.metadata.get("source", "Unknown")
@@ -239,6 +239,7 @@ def build_gradio_ui():
                     if source_key not in added_sources:
                         sources_text += f"- {source_name} (Page {page_num + 1})\n"
                         added_sources.add(source_key)
+                sources_text += "\n ```"
                 answer += sources_text
 
             history.append({"role": "user", "content": message})
