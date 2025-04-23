@@ -44,8 +44,25 @@ Once Ollama is installed, download the `gemma3:4b` model:
 ```bash
 ollama run gemma3:4b
 ```
+
+You also need the embedding model:
+```bash
+ollama pull mxbai-embed-large
+```
+
 This command will download the model if it's not already present and start an interactive session. You can exit the session after the download is complete.
 
 ## Running the Application
 
 (Instructions on how to run your Python chatbot application will go here once implemented.)
+
+
+
+
+
+
+
+
+
+
+
