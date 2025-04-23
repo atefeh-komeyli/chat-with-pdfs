@@ -57,10 +57,13 @@ This command will download the model if it's not already present and start an in
 
 ## Running the Application
 
-(Instructions on how to run your Python chatbot application will go here once implemented.)
+To start the application, run:
 
+```bash
+uv run main.py
+```
 
-
+The server will start, and you can access the chat interface through your web browser.
 
 
 
