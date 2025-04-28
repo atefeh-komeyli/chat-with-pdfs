@@ -1,74 +1,106 @@
 # Chat with PDFs AI Chatbot
 
-This project implements a Python-based chatbot that allows users to upload PDF documents and interactively ask questions about their content using an AI model.
+An AI-powered assistant that lets you upload PDF documents and chat with them interactively.
 
-## Prerequisites
 
-Before you begin, ensure you have the following installed:
+## Overview
 
-1. **uv**: A fast Python package installer and resolver.
-2. **Ollama**: A tool to run large language models locally.
+Chat with PDFs AI is an intelligent tool that:
+1. Analyzes uploaded PDF documents
+2. Understands and indexes the content using local AI models
+3. Enables you to ask questions and get precise answers instantly
 
-![Screenshot of the Chat with PDFs interface showing the document upload area and conversation panel where users can ask questions about their PDFs.](./images/image.png)
-*Example of the working application where users can upload PDFs and chat with an AI about the document content.*
+Perfect for researchers, students, professionals, or anyone who needs fast insights from lengthy documents!
+
+## Features
+
+- 📄 **PDF Upload & Parsing**: Upload one or multiple PDF files
+- 🧠 **Local AI Understanding**: No cloud required — runs fully offline using Ollama models
+- 💬 **Conversational Interface**: Ask natural language questions about your documents
+- ⚡ **Fast & Efficient**: Embedding and retrieval optimized for quick responses
+- 🔒 **Privacy-Friendly**: Your documents never leave your machine
+
+![Chat with PDFs in action](./images/image.png)  
+*Example of the application: upload PDFs and interact with an AI assistant to explore document content.*
+
 
 ## Installation
 
-### 1. Install uv
+### 1. Clone the Repository
+```bash
+git clone https://github.com/yourusername/chat-with-pdfs.git
+cd chat-with-pdfs
+```
 
-Follow the official instructions to install `uv` on your system:
-[https://docs.astral.sh/uv/getting-started/installation/](https://docs.astral.sh/uv/getting-started/installation/)
+### 2. Install uv
+
+Install `uv`, a fast Python package manager:  
+Follow the official instructions here: [https://docs.astral.sh/uv/getting-started/installation/](https://docs.astral.sh/uv/getting-started/installation/)
 
 For example, on macOS and Linux:
 ```bash
 curl -LsSf https://astral.sh/uv/install.sh | sh
 ```
 
-### 2. Install Project Dependencies
+### 3. Install Project Dependencies
 
-Clone this repository and navigate into the project directory. Then, use `uv` to install the required Python packages:
-
+Once `uv` is installed, sync the project environment:
 ```bash
-cd chat-with-pdfs
-uv sync 
+uv sync
 ```
 
-### 3. Install Ollama
+### 4. Install Ollama
 
-Download and install Ollama from the official website:
+Download and install Ollama to run AI models locally:  
 [https://ollama.com/](https://ollama.com/)
 
-Follow the installation instructions provided for your operating system.
+Follow the installation guide for your operating system.
 
-### 4. Download the AI Model
+### 5. Download Required AI Models
 
-Once Ollama is installed, download the `gemma3:4b` model:
+After installing Ollama, pull the models used for understanding and embedding:
 
+1. **Main language model**:
 ```bash
 ollama run gemma3:4b
 ```
 
-You also need the embedding model:
+2. **Embedding model**:
 ```bash
 ollama pull mxbai-embed-large
 ```
 
-This command will download the model if it's not already present and start an interactive session. You can exit the session after the download is complete.
+These models power the document comprehension and question answering locally.
 
-## Running the Application
+## Usage
 
-To start the application, run:
-
+1. Start the application:
 ```bash
 uv run main.py
 ```
 
-The server will start, and you can access the chat interface through your web browser.
+2. Open your browser and navigate to the provided local URL (typically http://127.0.0.1:7860)
 
+3. Upload your PDF files
 
+4. Start asking questions about the document's content!
 
+5. Get instant answers, references, and insights.
 
+---
 
+## How it Works (AI Behind the Scenes)
 
+- 🧠 **Document Processing**: PDFs are parsed and chunked intelligently to maintain context.
+- 📚 **Embedding Generation**: Each document chunk is embedded using a local model (`mxbai-embed-large`) to allow semantic search.
+- 🔎 **Contextual Retrieval**: When you ask a question, the system retrieves the most relevant chunks based on embedding similarity.
+- 🗣️ **Answer Generation**: The question and retrieved context are passed to a local language model (`gemma3:4b`) to generate a natural, conversational answer.
 
+Everything happens locally — ensuring speed, privacy, and control over your data.
 
+---
+
+## Privacy
+
+All document processing and AI operations happen on your local machine.  
+No data is uploaded to external servers. Your files and conversations stay private.
