@@ -4,6 +4,7 @@ import ollama
 import chromadb
 import os
 import time
+from typing import List, Dict, Any, Optional, Tuple, Set
 from langchain_ollama import OllamaLLM as Ollama
 from langchain_community.embeddings import OllamaEmbeddings
 from langchain_text_splitters import RecursiveCharacterTextSplitter
@@ -11,8 +12,9 @@ from langchain_community.document_loaders import PyPDFLoader
 from langchain_chroma import Chroma
 from langchain.prompts import ChatPromptTemplate
 from langchain.chains import RetrievalQA
+from langchain.schema import Document
 
-# --- Constants ---
+# Constants
 VECTOR_DB_DIR = "./chroma_db_persistent"
 OLLAMA_MODEL = "gemma3:4b"
 EMBEDDING_MODEL_OLLAMA = "mxbai-embed-large"
@@ -37,7 +39,7 @@ RAG_PROMPT_TEMPLATE_STRING = f"""{SYSTEM_PROMPT}
 Answer:"""
 
 
-# --- Logging Setup ---
+# Logging Setup
 logging.basicConfig(
     level=logging.WARNING,
     format="%(asctime)s - %(levelname)-5s| %(message)s",
@@ -45,30 +47,28 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# --- Global Variables ---
-vector_store = None
-retriever = None
-chain = None
+# Global Variables
+vector_store: Optional[Chroma] = None
+retriever: Optional[Any] = None
+chain: Optional[RetrievalQA] = None
 client = chromadb.PersistentClient(path=VECTOR_DB_DIR)
 
 
-# --- Embedding Selection ---
-def get_embedding_function():
+# Embedding Selection
+def get_embedding_function() -> OllamaEmbeddings:
     """Returns the Ollama embedding function."""
     logger.info("Using OllamaEmbeddings")
     try:
-        # Check if Ollama service is reachable
         ollama.list()
     except Exception as e:
-        # Provide a more specific error message
         raise ConnectionError(
             f"Ollama service not running or unreachable. Please ensure Ollama is running. Error details: {e}"
         )
     return OllamaEmbeddings(model=EMBEDDING_MODEL_OLLAMA)
 
 
-# --- Ollama LLM Initialization ---
-def get_ollama_llm():
+# Ollama LLM Initialization
+def get_ollama_llm() -> Ollama:
     """Initializes and returns the Ollama LLM instance."""
     try:
         llm = Ollama(
@@ -81,8 +81,8 @@ def get_ollama_llm():
         raise ConnectionError(f"Failed to connect to Ollama model {OLLAMA_MODEL}: {e}")
 
 
-# --- RAG Chain Setup ---
-def create_rag_chain(llm, retriever_instance):
+# RAG Chain Setup
+def create_rag_chain(llm: Ollama, retriever_instance: Any) -> RetrievalQA:
     """Creates and returns the RetrievalQA chain."""
     try:
         prompt = ChatPromptTemplate.from_template(RAG_PROMPT_TEMPLATE_STRING)
@@ -100,11 +100,13 @@ def create_rag_chain(llm, retriever_instance):
         raise RuntimeError(f"Failed to create RAG chain: {e}")
 
 
-# --- PDF Processing ---
-def process_pdfs(pdf_files, embedding_function):
+# PDF Processing
+def process_pdfs(
+    pdf_files: List[Any], embedding_function: OllamaEmbeddings
+) -> Tuple[str, Optional[Chroma], Optional[RetrievalQA]]:
     """Loads, splits, embeds, and stores PDF documents in ChromaDB, then sets up the RAG chain."""
-    global vector_store, retriever, chain  # Allow modification of global variables
-    documents = []
+    global vector_store, retriever, chain
+    documents: List[Document] = []
     start_time = time.time()
 
     if not pdf_files:
@@ -113,7 +115,7 @@ def process_pdfs(pdf_files, embedding_function):
 
     logger.info(f"Processing {len(pdf_files)} PDF file(s)...")
 
-    # --- Document Loading ---
+    # Document Loading
     for pdf_file in pdf_files:
         file_path = pdf_file.name
         logger.info(f"Loading PDF: {os.path.basename(file_path)}")
@@ -122,7 +124,6 @@ def process_pdfs(pdf_files, embedding_function):
             loaded_docs = loader.load_and_split()
             for doc in loaded_docs:
                 doc.metadata["source"] = os.path.basename(file_path)
-                # page number is often included by PyPDFLoader, check doc.metadata['page']
             documents.extend(loaded_docs)
             logger.info(
                 f"Loaded {len(loaded_docs)} pages/chunks from {os.path.basename(file_path)}"
@@ -135,26 +136,25 @@ def process_pdfs(pdf_files, embedding_function):
         logger.warning("No documents could be loaded from the PDFs.")
         return "Could not extract text from the provided PDFs.", None, None
 
-    # --- Text Splitting ---
+    # Text Splitting
     text_splitter = RecursiveCharacterTextSplitter(
         chunk_size=CHUNK_SIZE, chunk_overlap=CHUNK_OVERLAP
     )
     split_docs = text_splitter.split_documents(documents)
     logger.info(f"Split {len(documents)} documents into {len(split_docs)} chunks.")
 
-    # --- Embedding and Storing ---
+    # Embedding and Storing
     logger.info(
         "Embedding documents and storing in ChromaDB (this may take a while)..."
     )
     try:
-        # Create or update the vector store
         current_vector_store = Chroma.from_documents(
             documents=split_docs,
             embedding=embedding_function,
             persist_directory=VECTOR_DB_DIR,
             client=client,
         )
-        vector_store = current_vector_store  # Update global vector_store
+        vector_store = current_vector_store
         logger.info("Finished embedding and storing.")
     except Exception as e:
         logger.error(f"Error during embedding or storing: {e}")
@@ -163,7 +163,7 @@ def process_pdfs(pdf_files, embedding_function):
     processing_time = time.time() - start_time
     logger.info(f"PDF processing finished in {processing_time:.2f} seconds.")
 
-    # --- RAG Chain Initialization ---
+    # RAG Chain Initialization
     try:
         llm = get_ollama_llm()
         retriever = vector_store.as_retriever(
@@ -171,33 +171,30 @@ def process_pdfs(pdf_files, embedding_function):
         )
         logger.info("Retriever initialized.")
         current_chain = create_rag_chain(llm, retriever)
-        chain = current_chain  # Update global chain
+        chain = current_chain
         return (
             f"Successfully processed {len(pdf_files)} PDF(s). Ready to chat.",
-            vector_store,  # Return updated store (though global is also updated)
-            chain,  # Return updated chain (though global is also updated)
+            vector_store,
+            chain,
         )
     except (ConnectionError, RuntimeError) as e:
-        # Catch errors from get_ollama_llm or create_rag_chain
         logger.error(f"Error setting up RAG chain: {e}")
         return (
             f"Error setting up RAG chain: {e}",
             vector_store,
             None,
-        )  # Return store, but no chain
+        )
 
 
-# --- Gradio UI Definition ---
-def build_gradio_ui():
-    global vector_store, chain  # Keep access to globals for handle_chat
+# Gradio UI Definition
+def build_gradio_ui() -> gr.Blocks:
+    global vector_store, chain
 
-    def handle_upload(files):
-        # No need for global here as process_pdfs modifies them
+    def handle_upload(files: Optional[List[Any]]) -> str:
         if files is None:
             return "No files uploaded."
         try:
             embedding_func = get_embedding_function()
-            # process_pdfs updates global vector_store and chain
             status, _, _ = process_pdfs(files, embedding_func)
             logger.info(f"Upload handler status: {status}")
             return status
@@ -206,13 +203,13 @@ def build_gradio_ui():
             return f"Error: {e}. Is Ollama running?"
         except Exception as e:
             logger.error(f"Error during PDF processing setup: {e}")
-            # Reset chain if processing fails fundamentally
             global chain
             chain = None
             return f"An unexpected error occurred during processing: {e}"
 
-    def handle_chat(message, history):
-        # Access the global chain variable
+    def handle_chat(
+        message: str, history: List[Dict[str, str]]
+    ) -> Tuple[List[Dict[str, str]], str]:
         if chain is None:
             history.append({"role": "user", "content": message})
             history.append(
@@ -231,7 +228,7 @@ def build_gradio_ui():
 
             if source_docs:
                 sources_text = "\n<hr style='margin-top: 0.25em;margin-bottom: 0.25em;'>\n\n**Sources:** \n ``` \n"
-                added_sources = set()
+                added_sources: Set[str] = set()
                 for doc in source_docs:
                     source_name = doc.metadata.get("source", "Unknown")
                     page_num = doc.metadata.get("page", "N/A")
@@ -257,9 +254,15 @@ def build_gradio_ui():
             history.append({"role": "assistant", "content": error_message})
             return history, ""
 
-    with gr.Blocks(theme=gr.themes.Soft( primary_hue="teal", secondary_hue="purple", neutral_hue="slate")) as demo:
+    with gr.Blocks(
+        theme=gr.themes.Soft(
+            primary_hue="teal", secondary_hue="purple", neutral_hue="slate"
+        )
+    ) as demo:
         gr.Markdown("# Ask Your PDFs Anything")
-        gr.Markdown("Upload your PDFs, click 'Process PDFs' then type any question to get instant answers.")
+        gr.Markdown(
+            "Upload your PDFs, click 'Process PDFs' then type any question to get instant answers."
+        )
 
         with gr.Row():
             with gr.Column(scale=1):
@@ -300,40 +303,34 @@ if __name__ == "__main__":
 
             if vector_store:
                 try:
-                    llm = get_ollama_llm()  # Initialize LLM
+                    llm = get_ollama_llm()
                     retriever = vector_store.as_retriever(search_kwargs={"k": 5})
-                    chain = create_rag_chain(llm, retriever)  # Create chain
+                    chain = create_rag_chain(llm, retriever)
                     logger.info("RAG chain re-initialized from existing vector store.")
                 except (ConnectionError, RuntimeError) as e:
                     logger.error(
                         f"Error initializing RAG chain from existing store: {e}"
                     )
-                    # Keep vector_store loaded, but chain is not ready
                     chain = None
             else:
                 logger.warning(
                     "Could not load existing vector store properly. Chain not initialized."
                 )
-                chain = None  # Ensure chain is None
+                chain = None
         else:
             logger.info(
                 "No existing vector store found or directory is empty. Upload PDFs to create one."
             )
             logger.info(f"ChromaDB will persist data to: {VECTOR_DB_DIR}")
-            # No vector store means no chain initially
             vector_store = None
             retriever = None
             chain = None
 
     except ConnectionError as e:
         logger.critical(f"ERROR starting up: {e}. Is Ollama running?")
-        # Attempt to build UI even if Ollama isn't running, user might fix it
-        # Or exit(1) if we want to be stricter
     except Exception as e:
-        logger.exception(
-            f"An unexpected error occurred during initialization: {e}"
-        )  # Use exception to log stack trace
-        vector_store = None  # Ensure clean state on error
+        logger.exception(f"An unexpected error occurred during initialization: {e}")
+        vector_store = None
         retriever = None
         chain = None
 
