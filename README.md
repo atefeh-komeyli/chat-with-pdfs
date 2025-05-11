@@ -10,6 +10,8 @@ Chat with PDFs AI is an intelligent tool that:
 2. Understands and indexes the content using local AI models
 3. Enables you to ask questions and get precise answers instantly
 
+This application uses Retrieval-Augmented Generation (RAG), a powerful AI technique that enhances large language models with specific knowledge from your documents.
+
 Perfect for researchers, students, professionals, or anyone who needs fast insights from lengthy documents!
 
 ## Features
@@ -17,6 +19,7 @@ Perfect for researchers, students, professionals, or anyone who needs fast insig
 - 📄 **PDF Upload & Parsing**: Upload one or multiple PDF files
 - 🧠 **Local AI Understanding**: No cloud required — runs fully offline using Ollama models
 - 💬 **Conversational Interface**: Ask natural language questions about your documents
+- 🔍 **RAG Architecture**: Utilizes Retrieval-Augmented Generation for accurate, document-grounded responses
 - ⚡ **Fast & Efficient**: Embedding and retrieval optimized for quick responses
 - 🔒 **Privacy-Friendly**: Your documents never leave your machine
 
